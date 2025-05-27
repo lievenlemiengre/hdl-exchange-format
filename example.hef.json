@@ -1,0 +1,45 @@
+/*
+We want a format that is fairly straightforward to convert into a tool invocation.
+The format is not meant for manual editing so it can be verbose.
+
+
+*/
+{
+  "directory": ".",
+
+  "recipe": [
+    {
+      // verilog example
+      "compile": "verilog/systemverilog",
+      "library": "test",
+      "files": [
+        { "path": "path/to/first.v", "language": "verilog-2005" },
+        { "path": "path/to/second.sv", "language": "systemverilog-2012" },
+        { "path": "path/to/third.svh", "language": "systemverilog-2012" }
+      ],
+      "moduleSearchDirectories": {
+        "a/b/c": [".ext", ".v"] // path -> file suffix
+      },
+      "libraryFiles": ["a/b/libraryFile.v"],
+      "includeDirectories": ["include/this/path"],
+      "directives": { "DEBUG": "true" },
+      "multiFileCompilationUnitScope": true,
+
+      "tool-options": {
+        "ghdl": ["-fsynopsys", "-fexplicit"]
+      }
+    },
+
+    {
+      // vhdl example
+      "compile": "vhdl",
+      "library": "test",
+      "files": [
+        { "path": "path/to/a.vhd", "language": "vhdl-2008" },
+        { "path": "path/to/b.vhd", "language": "vhdl-1993" },
+        { "path": "path/to/c.vhd", "language": "vhdl-2008" }
+      ],
+      "conditionalAnalysis": { "DEBUG": "true" }
+    }
+  ]
+}

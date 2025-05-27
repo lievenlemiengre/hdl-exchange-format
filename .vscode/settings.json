@@ -1,0 +1,11 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": ["*.hef.json"],
+            "url": "./schemas/hef-schema.jsonc",
+        }
+    ],
+    "files.associations": {
+        "*.hef.json": "jsonc" // just to support comments
+    }
+}
