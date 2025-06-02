@@ -1,0 +1,31 @@
+name: Validate HEF files
+
+on:
+  push:
+    paths:
+      - '**.hef.jsonc'
+      - 'schemas/**'
+      - 'validate.py'
+      - '.github/workflows/validate.yml'
+      - 'requirements.txt'
+  pull_request:
+    paths:
+      - '**.hef.jsonc'
+      - 'schemas/**'
+      - 'validate.py'
+      - '.github/workflows/validate.yml'
+      - 'requirements.txt'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Validate HEF files
+        run: python validate.py
