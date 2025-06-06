@@ -9,6 +9,17 @@ The purpose of this format is to have a common and simple format
 between build managers and HDL tools (like IDE, simulators,
 synthesizers, linters).
 
+# Tool options
+
+The format should be as generic as possible, so features shared by all
+tools should be abstracted.  This obviously includes the list of
+files, the libraries and the standard.
+
+But it is also recognized that some features like particular options
+cannot be abstracted.  So there is a "tool-options" to set the options
+for a specific tool. "tool-options" is an object, whose properties are
+tool names.  It is expected that tool names are unique.
+
 # Tools accepting this format
 
 TODO.
