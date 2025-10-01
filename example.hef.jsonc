@@ -1,45 +1,64 @@
 /*
 We want a format that is fairly straightforward to convert into a tool invocation.
 The format is not meant for manual editing so it can be verbose.
-
-
 */
 {
   "directory": ".",
 
-  "recipe": [
+  "compilationSteps": [
     {
-      // verilog example
+      // mixed verilog & systemverilog example
       "compile": "verilog/systemverilog",
       "library": "test",
+
+      "systemVerilogVersion": "systemverilog-2017",
+      "verilogVersion": "verilog-2005",
+      "systemVerilogSuffix": [".sv", ".svh"],
+
       "files": [
-        { "path": "path/to/first.v", "language": "verilog-2005" },
-        { "path": "path/to/second.sv", "language": "systemverilog-2012" },
-        { "path": "path/to/third.svh", "language": "systemverilog-2012" }
+        "path/to/first.v",
+        { "libraryFile": "a/b/libraryFile.v" },
+        "path/to/second.sv",
+        { "moduleSearchPath": "a/b/c" },
+        "path/to/third.svh"
       ],
-      "moduleSearchDirectories": {
-        "a/b/c": [".ext", ".v"] // path -> file suffix
-      },
-      "libraryFiles": ["a/b/libraryFile.v"],
+
+      "visibleLibraries": ["altera_mf"],
+      "moduleSearchFileSuffixes": [".ext", ".v"],
       "includeDirectories": ["include/this/path"],
       "directives": { "DEBUG": "true" },
-      "multiFileCompilationUnitScope": true,
+      "multiFileCompilationUnitScope": true
+    },
 
-      "tool-options": {
-        "ghdl": ["-fsynopsys", "-fexplicit"]
-      }
+    {
+      // verilog example
+      "compile": "verilog",
+      "library": "test",
+      "verilogVersion": "verilog-2005",
+      "files": ["path/to/first.v", "path/to/second.verilog"],
+      "includeDirectories": ["include/this/path"],
+      "directives": { "DEBUG": "true" }
+    },
+
+    {
+      // systemverilog example
+      "compile": "systemverilog",
+      "library": "test",
+      "systemVerilogVersion": "systemverilog-2012",
+      "files": ["path/to/first.sv", "path/to/second.systemverilog"]
     },
 
     {
       // vhdl example
       "compile": "vhdl",
       "library": "test",
-      "files": [
-        { "path": "path/to/a.vhd", "language": "vhdl-2008" },
-        { "path": "path/to/b.vhd", "language": "vhdl-1993" },
-        { "path": "path/to/c.vhd", "language": "vhdl-2008" }
-      ],
-      "conditionalAnalysis": { "DEBUG": "true" }
+      "version": "vhdl-2008",
+      "files": ["path/to/a.vhd", "path/to/b.vhd", "path/to/c.vhd"],
+      "conditionalAnalysis": { "DEBUG": "true" },
+
+      "toolOptions": {
+        "ghdl": ["-fsynopsys", "-fexplicit"]
+      }
     }
   ]
 }

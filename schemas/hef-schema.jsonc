@@ -6,7 +6,7 @@
     "sharedRecipeStep": {
       "type": "object",
       "properties": {
-        "tool-options": {
+        "toolOptions": {
           "type": "object",
           "additionalProperties": {
             "type": "array",
@@ -14,7 +14,6 @@
           }
         },
         "library": {
-          // TODO: restrict this with a regex to get a valid identifier
           "type": "string"
         }
       }
@@ -22,46 +21,91 @@
 
     "verilogLanguage": {
       "type": "string",
-      "enum": [
-        "verilog-1995",
-        "verilog-2001",
-        "verilog-2005",
-        "systemverilog-2012",
-        "systemverilog-2017",
-        "systemverilog-2023"
-      ]
+      "enum": ["verilog-1995", "verilog-2001", "verilog-2005"]
     },
-    "fileEntryVerilog": {
-      "description": "single verilog file entry",
-      "type": "object",
-      "required": ["path", "language"],
-      "additionalProperties": false,
-
-      "properties": {
-        "path": { "type": "string" },
-        "language": { "$ref": "#/definitions/verilogLanguage" }
-      }
+    "systemVerilogLanguage": {
+      "type": "string",
+      "enum": ["systemverilog-2012", "systemverilog-2017", "systemverilog-2023"]
     },
     "verilogRecipeStep": {
       "allOf": [
         { "$ref": "#/definitions/sharedRecipeStep" },
         {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["compile", "verilogVersion"],
+              "properties": {
+                "compile": { "const": "verilog" },
+                "verilogVersion": { "$ref": "#/definitions/verilogLanguage" }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["compile", "systemVerilogVersion"],
+              "properties": {
+                "compile": { "const": "systemverilog" },
+                "systemVerilogVersion": {
+                  "$ref": "#/definitions/systemVerilogLanguage"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "compile",
+                "systemVerilogSuffix",
+                "verilogVersion",
+                "systemVerilogVersion"
+              ],
+              "properties": {
+                "compile": { "const": "verilog/systemverilog" },
+                "verilogVersion": { "$ref": "#/definitions/verilogLanguage" },
+                "systemVerilogVersion": {
+                  "$ref": "#/definitions/systemVerilogLanguage"
+                },
+                "systemVerilogSuffix": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          ]
+        },
+        {
           "type": "object",
           "required": ["compile", "library", "files"],
 
           "properties": {
-            "compile": {
-              "type": "string",
-              // basically aliasses
-              "enum": ["verilog", "systemverilog", "verilog/systemverilog"]
-            },
-
             "library": { "type": "string" },
 
             "files": {
               "type": "array",
               "minItems": 1,
-              "items": { "$ref": "#/definitions/fileEntryVerilog" }
+              "items": {
+                "oneOf": [
+                  { "type": "string" },
+                  {
+                    "type": "object",
+                    "required": ["libraryFile"],
+                    "properties": {
+                      "libraryFile": { "type": "string" }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["moduleSearchPath"],
+                    "properties": {
+                      "moduleSearchPath": { "type": "string" }
+                    }
+                  }
+                ]
+              }
+            },
+
+            "visibleLibraries": {
+              "type": "array",
+              "items": { "type": "string" }
             },
 
             "includeDirectories": {
@@ -74,18 +118,9 @@
               "additionalProperties": { "type": "string" }
             },
 
-            "libraryFiles": {
+            "moduleSearchFileSuffixes": {
               "type": "array",
               "items": { "type": "string" }
-            },
-
-            "moduleSearchDirectories": {
-              // { path : [file suffixs] }
-              "type": "object",
-              "additionalProperties": {
-                "type": "array",
-                "items": { "type": "string" }
-              }
             },
 
             // Not sure about this one, we could remove it
@@ -104,33 +139,20 @@
       "type": "string",
       "enum": ["vhdl-1987", "vhdl-1993", "vhdl-2002", "vhdl-2008", "vhdl-2019"]
     },
-    "fileEntryVhdl": {
-      "description": "single vhdl file entry",
-      "type": "object",
-      "required": ["path", "language"],
-      "additionalProperties": false,
-
-      "properties": {
-        "path": { "type": "string" },
-        "language": { "$ref": "#/definitions/vhdlLanguage" }
-      }
-    },
     "vhdlRecipeStep": {
       "allOf": [
         { "$ref": "#/definitions/sharedRecipeStep" },
         {
           "type": "object",
           "required": ["compile", "library", "files"],
-
           "properties": {
             "compile": { "const": "vhdl" },
-
             "library": { "type": "string" },
-
+            "version": { "$ref": "#/definitions/vhdlLanguage" },
             "files": {
               "type": "array",
               "minItems": 1,
-              "items": { "$ref": "#/definitions/fileEntryVhdl" }
+              "items": { "type": "string" }
             },
 
             "conditionalAnalysis": {
@@ -147,7 +169,7 @@
   "type": "object",
   "additionalProperties": false,
 
-  "required": ["recipe"],
+  "required": ["compilationSteps"],
   "properties": {
     "directory": {
       "description": "the base directory, all other paths are relative to this directory",
@@ -155,7 +177,7 @@
       // the default is the location of this file
       "default": "."
     },
-    "recipe": {
+    "compilationSteps": {
       "description": "one recepee corresponds roughly to one tool invocation multiple recepe steps can compile to the same library",
       "type": "array",
       "minItems": 1,
