@@ -23,3 +23,104 @@ tool names.  It is expected that tool names are unique.
 # Tools accepting this format
 
 TODO.
+
+# Compilation Recipe Format
+
+The `hdl-exchange-format` uses a JSON file to describe the compilation steps for an HDL project. The root of this file is an object with the following properties:
+
+- `directory` (optional, string, default: `.`): The base directory from which all relative paths in the file are resolved.
+- `compilationSteps` (required, array): An array of objects, where each object represents a single compilation step.
+
+Each object in the `compilationSteps` array must have a `compile` property that specifies the language to be compiled. Based on this, the object will have different properties.
+
+## Shared Properties
+
+All compilation steps share the following properties:
+
+- `library` (required, string): The name of the library into which the files will be compiled.
+- `toolOptions` (optional, object): An object where keys are tool names (e.g., "ghdl", "vivado") and values are an array of tool-specific command-line options.
+
+## Verilog/SystemVerilog Compilation (`compile` value: "verilog", "systemverilog", or "verilog/systemverilog")
+
+This compilation step is used for Verilog and SystemVerilog files.
+
+### Properties
+
+- `compile` (required, string): Must be one of `"verilog"`, `"systemverilog"`, or `"verilog/systemverilog"`.
+- `files` (required, array): An array of files to be compiled. Each item can be:
+    - A string representing the path to a file.
+    - An object `{"libraryFile": "path/to/file"}` to specify a library file.
+    - An object `{"moduleSearchPath": "path/to/dir"}` to add a directory to the module search path.
+- `verilogVersion` (optional, string): The Verilog standard to use. Can be `"verilog-1995"`, `"verilog-2001"`, or `"verilog-2005"`.
+- `systemVerilogVersion` (optional, string): The SystemVerilog standard to use. Can be `"systemverilog-2012"`, `"systemverilog-2017"`, or `"systemverilog-2023"`.
+- `systemVerilogSuffix` (required for `verilog/systemverilog`, array of strings): An array of file suffixes (e.g., `[".sv", ".svh"]`) to identify SystemVerilog files when `compile` is set to `"verilog/systemverilog"`.
+- `visibleLibraries` (optional, array of strings): A list of other libraries that should be visible during compilation.
+- `includeDirectories` (optional, array of strings): A list of directories to be added to the include path.
+- `directives` (optional, object): An object containing key-value pairs of directives (e.g., `{"DEBUG": "true"}`).
+- `moduleSearchFileSuffixes` (optional, array of strings): An array of file suffixes to search for in the module search paths.
+- `multiFileCompilationUnitScope` (optional, boolean, default: `true`): If `true`, all files in this step are compiled as a single compilation unit.
+
+### Examples
+
+**Mixed Verilog & SystemVerilog:**
+```json
+{
+  "compile": "verilog/systemverilog",
+  "library": "test",
+  "systemVerilogVersion": "systemverilog-2017",
+  "verilogVersion": "verilog-2005",
+  "systemVerilogSuffix": [".sv", ".svh"],
+  "files": [
+    "path/to/first.v",
+    { "libraryFile": "a/b/libraryFile.v" },
+    "path/to/second.sv"
+  ],
+  "includeDirectories": ["include/this/path"],
+  "directives": { "DEBUG": "true" }
+}
+```
+
+**Verilog only:**
+```json
+{
+  "compile": "verilog",
+  "library": "test",
+  "verilogVersion": "verilog-2005",
+  "files": ["path/to/first.v", "path/to/second.verilog"]
+}
+```
+
+**SystemVerilog only:**
+```json
+{
+  "compile": "systemverilog",
+  "library": "test",
+  "systemVerilogVersion": "systemverilog-2012",
+  "files": ["path/to/first.sv", "path/to/second.systemverilog"]
+}
+```
+
+## VHDL Compilation (`compile` value: "vhdl")
+
+This compilation step is used for VHDL files.
+
+### Properties
+
+- `compile` (required, string): Must be `"vhdl"`.
+- `files` (required, array of strings): An array of file paths to be compiled.
+- `version` (optional, string): The VHDL standard to use. Can be `"vhdl-1987"`, `"vhdl-1993"`, `"vhdl-2002"`, `"vhdl-2008"`, or `"vhdl-2019"`.
+- `conditionalAnalysis` (optional, object): An object containing key-value pairs for conditional analysis (e.g., `{"DEBUG": "true"}`).
+
+### Example
+
+```json
+{
+  "compile": "vhdl",
+  "library": "test",
+  "version": "vhdl-2008",
+  "files": ["path/to/a.vhd", "path/to/b.vhd"],
+  "toolOptions": {
+    "ghdl": ["-fsynopsys", "-fexplicit"]
+  }
+}
+```
